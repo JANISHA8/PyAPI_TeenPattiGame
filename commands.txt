@@ -12,6 +12,8 @@ curl -X POST "http://127.0.0.1:8001/fold" -H "Content-Type: application/json" -d
 Show Pot:
 curl -X GET "http://127.0.0.1:8001/show_pot"
 
+Show cards:
+///curl -X GET "http://127.0.0.1:8001/show_cards"
 
 Dealer:
 
