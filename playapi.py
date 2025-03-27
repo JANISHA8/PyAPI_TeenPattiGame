@@ -1,6 +1,7 @@
 import logging
 from fastapi import FastAPI, HTTPException, Depends
-from models import Game, Player, BetRequest, FoldRequest, GameStatusResponse
+from typing import List
+from models import Game, Player, BetRequest, FoldRequest, GameStatusResponse, SUITS, VALUES
 from init import app  # Import the FastAPI app from init.py
 
 # Initialize game instance
@@ -65,3 +66,46 @@ async def show_pot():
 if __name__ == "__main__":
     from init import start_player_api
     start_player_api()
+
+# API to start the game
+@app.post("/start_game")
+async def start_game():
+    if game.is_active:
+        raise HTTPException(status_code=400, detail="Game is already in progress.")
+    
+    if not game.start_game():
+        raise HTTPException(status_code=400, detail="Not enough players to start the game.")
+    
+    game.deal_cards()  # Deal initial cards to players
+    return {"message": "Game started successfully."}
+
+# API to start and immediately play first move
+@app.post("/start_and_play")
+async def start_and_play():
+    response = await start_game()
+    
+    # Automatically move to first action (if needed, customize this)
+    game.current_turn_order = [player.name for player in game.players if player.is_active]
+    game.current_turn_index = 0
+    
+    return {"message": "Game started and first move initialized.", "turn": game.current_turn_order[0]}
+
+# API to compare cards and determine winner
+@app.post("/compare_cards")
+async def compare_cards():
+    if not game.is_active:
+        raise HTTPException(status_code=400, detail="Game is not active.")
+    
+    # Compare hands (simple logic: highest card wins)
+    winner = max(game.players, key=lambda p: max([VALUES.index(card.rank) for card in p.cards], default=-1))
+    
+    game.is_active = False
+    return {"message": f"{winner.name} wins the round!"}
+
+# API to show all player cards
+@app.get("/show_cards")
+async def show_cards():
+    if game.is_active:
+        raise HTTPException(status_code=400, detail="Cannot reveal cards while game is active.")
+    
+    return {"players": [{p.name: [card.name for card in p.cards]} for p in game.players]}
