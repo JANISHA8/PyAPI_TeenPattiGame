@@ -1,3 +1,13 @@
+Self:
+
 Player Join:
 curl -X POST "http://127.0.0.1:8001/join?player_name=Janisha"
+
+Place bet:
+curl -X POST "http://127.0.0.1:8001/bet" -H "Content-Type: application/json" -d "{\"name\": \"Janisha\", \"amount\": 100}" 
+
+
+Dealer:
+
+
 
