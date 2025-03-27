@@ -102,10 +102,21 @@ async def compare_cards():
     game.is_active = False
     return {"message": f"{winner.name} wins the round!"}
 
-# API to show all player cards
 @app.get("/show_cards")
-async def show_cards():
+async def show_cards(player_name: str):
     if game.is_active:
         raise HTTPException(status_code=400, detail="Cannot reveal cards while game is active.")
+
+    # Find the requesting player
+    player = next((p for p in game.players if p.name == player_name), None)
     
-    return {"players": [{p.name: [card.name for card in p.cards]} for p in game.players]}
+    if not player:
+        raise HTTPException(status_code=404, detail="Player not found.")
+
+    if not player.is_active:
+        return {"message": f"{player_name}, you folded. No cards to show."}
+
+    # Format player's cards
+    formatted_cards = ", ".join([f"{card.rank}{card.suit}" for card in player.cards])
+
+    return {"player": player_name, "cards": formatted_cards}
